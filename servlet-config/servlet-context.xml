@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 修改说明: 1.修改<context:component-scan以确定要加载的controller,默认为com.**.controller 
+	2.修改class=ControllerClassNameHandlerMapping节点的pathPrefix以确定要生成的前缀 -->
+
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-2.5.xsd
+	http://www.springframework.org/schema/mvc 
+	http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd"
+	default-autowire="byName">
+	<!-- 自动搜索@Controller标注的类 -->
+	<context:component-scan base-package="com.**.controllers.**" />
+
+
+	<!--异常处理bean -->
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerExceptionResolver">
+	</bean>
+	<mvc:annotation-driven>
+		<mvc:message-converters>
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/plain;charset=UTF-8</value>
+						<value>text/html;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+
+	<!--拦截器类bean <bean id="sysIntecepter" class="com.zt.intecepter.sys.SysIntecepter"> 
+		</bean> -->
+	<!-- <bean id="detectIntecepter" class="com.zt.intecepter.DetectIntecepter"> 
+		<property name="mappingURL" value=".*/entryOrJsonController\.do\?action=reg.*" 
+		/> </bean> -->
+
+	<!-- <mvc:interceptors> 使用bean定义一个Interceptor，直接定义在mvc:interceptors根下面的Interceptor将拦截所有的请求 
+		<mvc:interceptor> <mvc:mapping path="/detect/**" /> 定义在mvc:interceptor下面的表示是对特定的请求才进行拦截的 
+		<bean class="com.zt.intecepter.DetectIntecepter" /> </mvc:interceptor> </mvc:interceptors> -->
+	<!-- 登录拦截器 -->
+	<!-- <bean id="loginIntecepter" class="com.zt.intecepter.sys.LoginInteceptor"> 
+		</bean> -->
+
+	<!-- 权限拦截器 -->	<!-- <bean id="priviligeIntecepter" class="com.zt.intecepter.sys.PriviligeInteceptor"> 
+		</bean> -->
+
+	<!--文件上传分发 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 以字节为单位的最大上传文件的大小 -->
+		<property name="maxUploadSize" value="100000000" />
+	</bean>
+
+	<!--HandlerMapping 类bean -->
+	<!-- <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"> 
+		<property name="interceptors"> <list> <ref bean="sysIntecepter" /> <ref bean="loginIntecepter" 
+		/> <ref bean="priviligeIntecepter" /> </list> </property> </bean> -->
+	<!--controller 方法传递 -->
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+		<!--绑定自定义类型转换 -->
+		<property name="webBindingInitializer">
+			<bean class="com.cao.utils.MyBindingInitializer" />
+		</property>
+
+	</bean>
+
+
+
+
+	<!-- 根据客户端的不同的请求决定不同的view进行响应, 如 /blog/1.json /blog/1.xml -->
+	<bean
+		class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+
+		<property name="ignoreAcceptHeader" value="true" />
+		<property name="defaultContentType" value="text/html" />
+
+		<!-- 扩展名至mimeType的映射,即 /user.json => application/json -->
+		<property name="mediaTypes">
+			<map>
+				<entry key="json" value="application/json" />
+				<entry key="xml" value="application/xml" />
+			</map>
+		</property>
+		<!-- 用于开启 /userinfo/123?format=json 的支持 -->
+		<property name="favorParameter" value="false" />
+		<!-- <property name="viewResolvers"> <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"> 
+			<description> 假如逻辑试图名为 "hello"，因此 viewResolver 将解析成 /WEB-INF/jsp/hello.jsp 
+			</description> <property name="order" value="10" /> <property name="prefix" 
+			value="/WEB-INF/charisma/" /> <property name="suffix" value=".jsp" /> </bean> 
+			</property> -->
+		<property name="viewResolvers">
+			<list>
+				<bean class="org.springframework.web.servlet.view.BeanNameViewResolver" />
+				<bean
+					class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+					<property name="viewClass"
+						value="org.springframework.web.servlet.view.JstlView" />
+					<property name="prefix" value="/pages" />
+					<property name="suffix" value=".jsp">
+					</property>
+				</bean>
+			</list>
+		</property>
+		<property name="defaultViews">
+			<list>
+				<!-- for application/json -->
+				<bean
+					class="org.springframework.web.servlet.view.json.MappingJacksonJsonView" />
+				<!-- for application/xml -->
+				<bean class="org.springframework.web.servlet.view.xml.MarshallingView">
+					<property name="marshaller">
+						<bean class="org.springframework.oxm.xstream.XStreamMarshaller">
+							<property name="autodetectAnnotations" value="true" />
+							<!-- 对以下的类型转换为xml 根节点 -->
+							<property name="supportedClasses">
+								<list>
+									<value>java.util.List</value>
+									<value>java.util.Map</value>
+								</list>
+							</property>
+
+						</bean>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="messageSource"
+		class="org.springframework.context.support.ResourceBundleMessageSource"
+		p:basename="i18n/messages" />
+
+	<!-- Mapping exception to the handler view <bean id="exceptionResolver" 
+		class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"> 
+		<property name="exceptionMappings"> <props> </props> </property> </bean> -->
+
+
+
+
+	<!-- <bean id="handler1" class="com.zt.controller.sys.ApplicationErrorHandler"> 
+		<property name="order"> <value>1</value> </property> </bean> -->
+</beans>
