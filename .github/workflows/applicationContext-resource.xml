@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+	default-autowire="byName">
+	<!-- 自动搜索@Controller标注的类 -->
+	<context:component-scan base-package="com.**" />
+	<bean id="spring" class="com.cao.utils.SpringUtil"></bean>
+	<!--配置文件bean -->
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:database.properties</value>
+			</list>
+		</property>
+	</bean>
+	<!-- com.mchange.v2.c3p0.ComboPooledDataSource -->
+	<!-- org.apache.commons.dbcp.BasicDataSource -->
+	<!--使用c3p0数据源 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="${database.connection.driver_class}" />
+		<property name="jdbcUrl" value="${database.connection.url}" />
+		<property name="user" value="${database.connection.username}" />
+		<property name="password" value="${database.connection.password}" />
+		<property name="minPoolSize" value="2" />
+		<property name="maxPoolSize" value="20" />
+		<property name="maxIdleTime" value="1800" />
+		<property name="acquireIncrement" value="2" />
+		<property name="maxStatements" value="100" />
+		<property name="initialPoolSize" value="3" />
+		<property name="idleConnectionTestPeriod" value="1800" />
+		<property name="acquireRetryAttempts" value="4" />
+		<property name="breakAfterAcquireFailure" value="true" />
+		<property name="testConnectionOnCheckout" value="false" />
+	</bean>
+
+
+	<!--使用 TOMCAT JNID 数据源 -->
+	<!-- <bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean"> 
+		<property name="jndiName"> <value>${tomcat.datasource.jndiname}</value> </property> 
+		</bean> -->
+
+	<!--使用 WEBLOGIC JNDI数据源 -->
+	<!-- <bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean"> 
+		<property name="jndiName"> <value>${weblogic.datasource.jndiname}</value> 
+		</property> <property name="resourceRef"> <value>false</value> </property> 
+		<property name="jndiEnvironment"> <props> <prop key="java.naming.provider.url"> 
+		${weblogic.datasource.url} </prop> <prop key="java.naming.factory.initial"> 
+		weblogic.jndi.WLInitialContextFactory </prop> </props> </property> </bean> -->
+
+	<!--使用 APACHE DBCP 数据源 (需要添加驱动jar) -->
+	<!-- <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"> 
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"> 
+		</property> <property name="url" value="jdbc:oracle:thin:@192.168.2.26:1521:fas"> 
+		</property> <property name="username" value="fasn"></property> <property 
+		name="password" value="fasn"></property> </bean> -->
+</beans>
